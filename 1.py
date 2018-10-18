@@ -11,8 +11,12 @@ import matplotlib.pyplot as plt
 import time
 image = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color2.png', 3)
 image2 = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color1.png', 3)
+
 result = np.zeros((image.shape[0] ,  image.shape[1] , image.shape[2]), dtype = 'uint8' ) 
-result2 = np.zeros((image.shape[0] ,  image.shape[1] , image.shape[2]), dtype = 'uint8' ) 
+
+resultRed = np.zeros((image.shape[0] ,  image.shape[1]), dtype = 'uint8' ) 
+resultGreen = np.zeros((image.shape[0] ,  image.shape[1]), dtype = 'uint8' ) 
+resultBlue = np.zeros((image.shape[0] ,  image.shape[1]), dtype = 'uint8' )  
 
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
@@ -20,6 +24,10 @@ image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
 imageRedChannel = image[:,:,0]
 imageGreenChannel = image[:,:,1]
 imageBlueChannel = image[:,:,2]
+
+imageRedRaw = image[:,:,0]
+imageGreenRaw = image[:,:,1]
+imageBlueRaw = image[:,:,2]
 
 imageRedChannel2 = image2[:,:,0]
 imageGreenChannel2 = image2[:,:,1]
@@ -104,37 +112,85 @@ gj = mj
 
 
 for gi in range(mi,Mi):
-    while gj<256 and cdfInput[0,gi]<1 and cdfTarget[0,gj]<cdfInput[0,gi]:
+    while gj<256 and cdfInput[0,gi]<1 and cdfTarget[0,gj]<cdfInput[0,gi] :
         gj += 1
-    result[image==gi]=gj
-    time.sleep(0)
+    resultRed[imageRedRaw==gi ] =gj
+gj = mj
+for gi in range(mi,Mi):
+    while gj<256 and cdfInput[1,gi]<1 and cdfTarget[1,gj]<cdfInput[1,gi] :
+        gj += 1
+    resultGreen[imageGreenRaw==gi ] =gj
+gj = mj    
+for gi in range(mi,Mi):
+    while gj<256 and cdfInput[2,gi]<1 and cdfTarget[2,gj]<cdfInput[2,gi] :
+        gj += 1
+    resultBlue[imageBlueRaw==gi ] =gj
+
+result[:,:,0] = resultBlue
+result[:,:,1] = resultGreen
+result[:,:,2] = resultRed
+
+RedChannel = cv2.equalizeHist(result[:,:,0])
+GreenChannel = cv2.equalizeHist(result[:,:,1])
+BlueChannel = cv2.equalizeHist(result[:,:,2])
+BlueChannel = np.reshape(BlueChannel,((BlueChannel.shape[0]*BlueChannel.shape[1]),1) )
+GreenChannel = np.reshape(GreenChannel,((GreenChannel.shape[0]*GreenChannel.shape[1]),1) )
+RedChannel = np.reshape(RedChannel,((RedChannel.shape[0]*RedChannel.shape[1]),1) )
+
+
+countResult = np.zeros((3,256,1), dtype='int32')
+countResult[0]= findHistograms(RedChannel)
+countResult[1] = findHistograms(GreenChannel)
+countResult[2] = findHistograms(BlueChannel)
+
+
+pdfResult = np.zeros((3,256,1), dtype = 'float64')
+cdfResult = np.zeros((3,256,1), dtype = 'float64')
+plt.bar(np.arange(256), height = countResult[1] , color = 'green')
+plt.show()
+plt.close()
+plt.bar(np.arange(256), height = countResult[2] , color = 'blue')
+plt.show()
+plt.close()
+plt.bar(np.arange(256), height = countResult[0] , color = 'red')
+plt.show()
+plt.close()
+k= 0 
+for i in range(3):
+    k = 0
+    for j in countResult[i]:
+        pdfResult[i,k] = j/BlueChannel.size
+        k+=1
+
+for m in range(3):
+    for i in range(256):
+        if(i == 0):
+            cdfResult[m,i] = pdfResult[m,i]
+        else:
+            cdfResult[m,i] = cdfResult[m,i-1] + pdfResult[m,i]
+
+
+
+resultEqualize = np.zeros((image.shape[0] ,  image.shape[1] , image.shape[2]), dtype = 'uint8' ) 
+
+for i in range(3):
+    for j in range(result.shape[0]):
+        for k in range(result.shape[1]):
+            resultEqualize[j,k,i] = 255* cdfResult[i,result[j,k,i]]
+        
+
+resultEqualize = cv2.cvtColor(resultEqualize, cv2.COLOR_RGB2BGR)
+cv2.imshow('assd', resultEqualize)
+result= cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
+
+cv2.imshow('assda', result)
+cv2.waitKey(0)
+
+
 
 result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 image2 = cv2.cvtColor(image2, cv2.COLOR_RGB2BGR)
 
-aaa = cv2.equalizeHist(image[:,:,0])
-aa=cv2.equalizeHist(image[:,:,1])
-a= cv2.equalizeHist(image[:,:,2])
-result2[:,:,0]= aaa
-result2[:,:,1]= aa
-result2[:,:,2]= a
-
-cv2.imshow('re', result2)
+cv2.imshow('asd', result)
 cv2.waitKey(0)
-
-bbb = cv2.equalizeHist(result[:,:,0])
-bb=cv2.equalizeHist(result[:,:,1])
-b = cv2.equalizeHist(result[:,:,2])
-result2[:,:,0]= bbb
-result2[:,:,1]= bb
-result2[:,:,2]= b
-
-cv2.imshow('rme', result2)
-cv2.waitKey(0)
-
-cv2.imshow('re', result)
-cv2.imshow('input', image )
-cv2.imshow('target', image2 )
-cv2.waitKey(0)
-
