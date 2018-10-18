@@ -8,20 +8,13 @@ Created on Mon Oct 15 15:59:51 2018
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+image = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color2.png', 3)
+image2 = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color1.png', 3)
+result = np.zeros((image.shape[0] ,  image.shape[1] , image.shape[2]), dtype = 'uint8' ) 
 
-image = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color1.png', 3)
-image2 = cv2.imread('C:/Users/BurakBey/Desktop/BLG 453E- Computer Vision/hw1/BLG453E_hw1/color2.png', 3)
-result = np.zeros((image.shape[0] ,  image.shape[1] , image.shape[2]), dtype = 'int32' )
-
-result[0] = cv2.equalizeHist(image[0],image2[0])
-result[1] = cv2.equalizeHist(image[1],image2[1])
-result[2] = cv2.equalizeHist(image[2],image2[2])
-cv2.imshow('empty4', result)
-cv2.waitKey(0)
-
-image= cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-image2= cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
-
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
 
 imageRedChannel = image[:,:,0]
 imageGreenChannel = image[:,:,1]
@@ -101,66 +94,21 @@ for m in range(3):
         else:
             cdfTarget[m,i] = cdfTarget[m,i-1] + pdfTarget[m,i]
 
-    
-plt.plot(np.arange(256), cdfTarget[0] , color = 'red')
-plt.plot(np.arange(256), cdfTarget[1] , color = 'green')
-plt.plot(np.arange(256), cdfTarget[2] , color = 'blue')
-    
-plt.plot(np.arange(256), pdfTarget[0] , color = 'red')
-plt.plot(np.arange(256), pdfTarget[1] , color = 'green')
-plt.plot(np.arange(256), pdfTarget[2] , color = 'blue')
+mi = np.min(image)
+Mi = np.max(image)
+mj = np.min(image2)
+Mj = np.max(image2)
+gj = mj
 
 
 
-for i in range(image.shape[0]):
-    for j in range(image.shape[1]):
-        for k in range(image.shape[2]):
-            result[i,j,k] = 255* cdfInput[k,image2[i,j,k]]
-            
+for gi in range(mi,Mi):
+    while gj<256 and cdfInput[0,gi]<1 and cdfTarget[0,gj]<cdfInput[0,gi]:
+        print(str(gi) + ' ' + str(gj))
+        gj += 1
+    result[image==gi]=gj
+    time.sleep(0)
+
 result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-cv2.imshow('empty', result)
-cv2.waitKey(0)
-
-for i in range(image.shape[0]):
-    for j in range(image.shape[1]):
-        for k in range(image.shape[2]):
-            result[i,j,k] = 255* cdfInput[k,image2[i,j,k]]
-            
-result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-cv2.imshow('empty2', result)
-
-
-for i in range(image.shape[0]):
-    for j in range(image.shape[1]):
-        for k in range(image.shape[2]):
-            result[i,j,k] = 255* cdfTarget[k,image[i,j,k]]
-            
-result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-cv2.imshow('empty3', result)
-
-
-for i in range(image.shape[0]):
-    for j in range(image.shape[1]):
-        for k in range(image.shape[2]):
-            result[i,j,k] = 255* cdfTarget[k,image2[i,j,k]]
-            
-            
-
-for i in range(image.shape[0]):
-    for j in range(image.shape[1]):
-        for k in range(image.shape[2]):
-            manipulated = False
-            for m in range(1, 256):
-                if(cdfTarget[k,m] >= cdfInput[k,image[i,j,k]] and cdfTarget[k,m-1] < cdfInput[k,image[i,j,k]]):
-                    result[i,j,k] = 255* cdfTarget[k,m]
-                    manipulated = True
-            if(manipulated == False):
-                result[i,j,k] = 255* cdfTarget[k,0]
-            
-            
-            
-            
-            
-result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-cv2.imshow('empty4', result)
-cv2.waitKey(0)
+image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+image2 = cv2.cvtColor(image2, cv2.COLOR_RGB2BGR)
